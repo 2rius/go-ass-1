@@ -9,6 +9,7 @@ func SpawnPhilo(wg *sync.WaitGroup, ph Philo, meals int) {
 	for {
 		if ph.eaten >= meals {
 			fmt.Printf("(id: %d) has eaten all meals!\n", ph.id)
+			// [TODO] gets called again
 			wg.Done()
 		}
 
@@ -43,18 +44,20 @@ func (ph *Philo) thinking() {
 			switch request.message {
 
 			case "giveyourleft":
-				// fmt.Printf("%d giverleft\n", ph.id)
+				// fmt.Printf("%d giving my left\n", ph.id)
 				ph.forks[LEFT] <- Msg{"request", "clean!", nil}
 				msg := Msg{"response", "here", ph.forks[LEFT]}
 				request.recv <- msg
 				ph.forks[LEFT] = nil
+				ph.defered[LEFT] = nil
 
 			case "giveyourright":
-				// fmt.Printf("%d giverright\n", ph.id)
+				// fmt.Printf("%d giving my right\n", ph.id)
 				ph.forks[RIGHT] <- Msg{"request", "clean!", nil}
 				msg := Msg{"response", "here", ph.forks[RIGHT]}
 				request.recv <- msg
 				ph.forks[RIGHT] = nil
+				ph.defered[RIGHT] = nil
 			}
 		default:
 		}
@@ -89,35 +92,37 @@ func (ph *Philo) hungry() {
 	var msgRight Msg
 
 	if ph.forks[LEFT] == nil {
+		// fmt.Printf("%d give me my left!\n", ph.id)
 		msgLeft = Msg{"request", "giveyourright", make(chan Msg)}
 		ph.neighbours[LEFT] <- msgLeft
 	}
 
 	if ph.forks[RIGHT] == nil {
+		// fmt.Printf("%d give me my right!\n", ph.id)
 		msgRight = Msg{"request", "giveyourleft", make(chan Msg)}
 		ph.neighbours[RIGHT] <- msgRight
 	}
 
 	for {
 		select {
+		case request := <-ph.neighbours[ME]:
+			// fmt.Printf("%d NOT YET\n", ph.id)
+			switch request.message {
+			case "giveyourleft":
+				ph.defered[LEFT] = request.recv
+			case "giveyourright":
+				ph.defered[RIGHT] = request.recv
+			}
+
 		case response := <-msgLeft.recv:
+			// fmt.Printf("%d getting my left\n", ph.id)
 			ph.forks[LEFT] = response.recv
 
 		case response := <-msgRight.recv:
+			// fmt.Printf("%d getting my right\n", ph.id)
 			ph.forks[RIGHT] = response.recv
-
-		case request := <-ph.neighbours[ME]:
-			// save as defered
-			msg := Msg{"response", "later", make(chan Msg)}
-			request.recv <- msg
-
-			switch request.message {
-			case "giveyourleft":
-				ph.defered[LEFT] = ph.neighbours[LEFT]
-			case "giveyourright":
-				ph.defered[RIGHT] = ph.neighbours[RIGHT]
-			}
 		}
+
 
 		if ph.forks[LEFT] != nil && ph.forks[RIGHT] != nil {
 			ph.state = EATING
@@ -128,6 +133,7 @@ func (ph *Philo) hungry() {
 
 func (ph *Philo) eating() {
 	if ph.defered[LEFT] != nil {
+		// fmt.Printf("%d giving my left to defered\n", ph.id)
 		ph.defered[LEFT] <- Msg{"response", "here", ph.forks[LEFT]}
 		ph.forks[LEFT] = nil
 		ph.defered[LEFT] = nil
@@ -136,6 +142,7 @@ func (ph *Philo) eating() {
 	}
 
 	if ph.defered[RIGHT] != nil {
+		// fmt.Printf("%d giving my right to defered\n", ph.id)
 		ph.defered[RIGHT] <- Msg{"response", "here", ph.forks[RIGHT]}
 		ph.forks[RIGHT] = nil
 		ph.defered[RIGHT] = nil

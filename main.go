@@ -5,7 +5,7 @@ import (
 	"sync"
 )
 
-func main() {
+func prompt() (int, int) {
 	var philCount, mealCount int
 
 	fmt.Print("How many philosophers and chopsticks? (default: 5, minimum: 3): ")
@@ -26,7 +26,16 @@ func main() {
 		}
 	}
 
-	n := philCount
+	return philCount, mealCount
+}
+
+func main() {
+	fmt.Println()
+
+	n := 5
+	mealCount := 3
+
+	// n, mealCount = prompt()
 
 	wg := new(sync.WaitGroup)
 	wg.Add(n)
@@ -64,4 +73,6 @@ func main() {
 	}
 
 	wg.Wait()
+
+	fmt.Println()
 }

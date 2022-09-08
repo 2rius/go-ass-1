@@ -30,8 +30,6 @@ func prompt() (int, int) {
 }
 
 func main() {
-	fmt.Println()
-
 	n := 5
 	mealCount := 3
 
@@ -73,6 +71,4 @@ func main() {
 	}
 
 	wg.Wait()
-
-	fmt.Println()
 }

@@ -6,11 +6,17 @@ import (
 )
 
 func SpawnPhilo(wg *sync.WaitGroup, ph Philo, meals int) {
+	calledWg := false
+
 	for {
 		if ph.eaten >= meals {
 			fmt.Printf("(id: %d) has eaten all meals!\n", ph.id)
+
 			// [TODO] gets called again
-			wg.Done()
+			if !calledWg {
+				wg.Done()
+				calledWg = true
+			}
 		}
 
 		switch ph.state {

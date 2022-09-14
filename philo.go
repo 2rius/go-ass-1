@@ -5,6 +5,7 @@ import (
 	"sync"
 )
 
+// Philo is a philosopher with a name and a channel to his neighbours to the left and right
 func SpawnPhilo(wg *sync.WaitGroup, ph Philo, meals int) {
 	calledWg := false
 
@@ -12,7 +13,6 @@ func SpawnPhilo(wg *sync.WaitGroup, ph Philo, meals int) {
 		if ph.eaten >= meals {
 			fmt.Printf("(id: %d) has eaten all meals!\n", ph.id)
 
-			// [TODO] gets called again
 			if !calledWg {
 				wg.Done()
 				calledWg = true
@@ -50,7 +50,6 @@ func (ph *Philo) thinking() {
 			switch request.message {
 
 			case "giveyourleft":
-				// fmt.Printf("%d giving my left\n", ph.id)
 				ph.forks[LEFT] <- Msg{"request", "clean!", nil}
 				msg := Msg{"response", "here", ph.forks[LEFT]}
 				request.recv <- msg
@@ -58,7 +57,6 @@ func (ph *Philo) thinking() {
 				ph.defered[LEFT] = nil
 
 			case "giveyourright":
-				// fmt.Printf("%d giving my right\n", ph.id)
 				ph.forks[RIGHT] <- Msg{"request", "clean!", nil}
 				msg := Msg{"response", "here", ph.forks[RIGHT]}
 				request.recv <- msg
@@ -70,7 +68,6 @@ func (ph *Philo) thinking() {
 
 		left, right := ph.checkForks()
 
-		// [TODO] rækkefølge
 		switch {
 		// If either is dirty we're still thinking
 		case left == DIRTY || right == DIRTY:
@@ -98,13 +95,11 @@ func (ph *Philo) hungry() {
 	var msgRight Msg
 
 	if ph.forks[LEFT] == nil {
-		// fmt.Printf("%d give me my left!\n", ph.id)
 		msgLeft = Msg{"request", "giveyourright", make(chan Msg)}
 		ph.neighbours[LEFT] <- msgLeft
 	}
 
 	if ph.forks[RIGHT] == nil {
-		// fmt.Printf("%d give me my right!\n", ph.id)
 		msgRight = Msg{"request", "giveyourleft", make(chan Msg)}
 		ph.neighbours[RIGHT] <- msgRight
 	}
@@ -112,7 +107,6 @@ func (ph *Philo) hungry() {
 	for {
 		select {
 		case request := <-ph.neighbours[ME]:
-			// fmt.Printf("%d NOT YET\n", ph.id)
 			switch request.message {
 			case "giveyourleft":
 				ph.defered[LEFT] = request.recv
@@ -121,11 +115,9 @@ func (ph *Philo) hungry() {
 			}
 
 		case response := <-msgLeft.recv:
-			// fmt.Printf("%d getting my left\n", ph.id)
 			ph.forks[LEFT] = response.recv
 
 		case response := <-msgRight.recv:
-			// fmt.Printf("%d getting my right\n", ph.id)
 			ph.forks[RIGHT] = response.recv
 		}
 
@@ -139,7 +131,6 @@ func (ph *Philo) hungry() {
 
 func (ph *Philo) eating() {
 	if ph.defered[LEFT] != nil {
-		// fmt.Printf("%d giving my left to defered\n", ph.id)
 		ph.defered[LEFT] <- Msg{"response", "here", ph.forks[LEFT]}
 		ph.forks[LEFT] = nil
 		ph.defered[LEFT] = nil
@@ -148,7 +139,6 @@ func (ph *Philo) eating() {
 	}
 
 	if ph.defered[RIGHT] != nil {
-		// fmt.Printf("%d giving my right to defered\n", ph.id)
 		ph.defered[RIGHT] <- Msg{"response", "here", ph.forks[RIGHT]}
 		ph.forks[RIGHT] = nil
 		ph.defered[RIGHT] = nil

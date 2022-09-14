@@ -1,5 +1,6 @@
 package main
 
+// Enum for message types
 type msgtype int
 
 const (
@@ -7,6 +8,7 @@ const (
 	RECEIVE         = iota
 )
 
+// Blueprint for a message
 type Msg struct {
 	msgtype string
 	message string

@@ -9,7 +9,7 @@ const (
 	CLEAN           = iota
 )
 
-// Phil state
+// Philo state
 type state int
 
 const (

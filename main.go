@@ -5,7 +5,7 @@ import (
 	"sync"
 )
 
-//Prompting the user to input how many philosophers and how many meals they should eat
+// Prompting the user to input how many philosophers and how many meals they should eat
 func prompt() (int, int) {
 	var philCount, mealCount int
 
@@ -40,7 +40,7 @@ func prompt() (int, int) {
 	return philCount, mealCount
 }
 
-//Spawning the philosophers and chopsticks and starting the simulation of the dining philosophers problem
+// Spawning the philosophers and chopsticks and starting the simulation of the dining philosophers problem
 func main() {
 	n := 5
 	mealCount := 3
